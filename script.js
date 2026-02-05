@@ -6,10 +6,12 @@ let timeLeft = 0;
 let timerMode = 'focus';
 let currentSession = 1;
 let totalSessions = 4;
+let activeTasks = [];
 let completedTasks = [];
 let currentPriority = 'medium';
 let currentTask = null;
 let isExpanded = false;
+let editingTaskId = null;
 
 function toggleTheme() {
     document.body.classList.toggle('dark');
@@ -31,22 +33,17 @@ function toggleExpand() {
     isExpanded = !isExpanded;
     container.classList.toggle('expanded');
     
-    // Hide/show avatar and theme toggle
     if (isExpanded) {
         avatar.style.opacity = '0';
         avatar.style.visibility = 'hidden';
         themeToggle.style.opacity = '0';
         themeToggle.style.visibility = 'hidden';
-        
-        // Setup mouse move listener for bottom hover
         document.addEventListener('mousemove', handleMouseMove);
     } else {
         avatar.style.opacity = '1';
         avatar.style.visibility = 'visible';
         themeToggle.style.opacity = '1';
         themeToggle.style.visibility = 'visible';
-        
-        // Remove mouse move listener
         document.removeEventListener('mousemove', handleMouseMove);
         controls.classList.remove('show');
     }
@@ -57,7 +54,6 @@ function handleMouseMove(e) {
     const windowHeight = window.innerHeight;
     const mouseY = e.clientY;
     
-    // Show controls when mouse is in bottom 150px of screen
     if (mouseY > windowHeight - 150) {
         controls.classList.add('show');
     } else {
@@ -172,36 +168,138 @@ function selectPriority(priority) {
     event.target.classList.add('active');
 }
 
-function addTask() {
+function saveTask() {
     const title = document.getElementById('taskTitle').value.trim();
     if (!title) {
         alert('Please enter a task title');
         return;
     }
 
-    const task = {
-        id: Date.now(),
-        title: title,
-        note: document.getElementById('taskNote').value,
-        date: document.getElementById('taskDate').value,
-        priority: currentPriority,
-        completed: true
-    };
-
-    completedTasks.push(task);
+    if (editingTaskId !== null) {
+        // Edit existing task
+        const taskIndex = activeTasks.findIndex(t => t.id === editingTaskId);
+        if (taskIndex > -1) {
+            activeTasks[taskIndex] = {
+                ...activeTasks[taskIndex],
+                title: title,
+                note: document.getElementById('taskNote').value,
+                date: document.getElementById('taskDate').value,
+                priority: currentPriority
+            };
+        }
+        editingTaskId = null;
+    } else {
+        // Add new task
+        const task = {
+            id: Date.now(),
+            title: title,
+            note: document.getElementById('taskNote').value,
+            date: document.getElementById('taskDate').value,
+            priority: currentPriority,
+            completed: false
+        };
+        activeTasks.push(task);
+    }
     
-    document.getElementById('taskTitle').value = '';
-    document.getElementById('taskNote').value = '';
-    document.getElementById('taskDate').value = '';
-    
-    currentTask = task;
-    updateSessionTitle();
-    
-    switchTaskTab('done');
+    clearTaskForm();
+    switchTaskTab('active');
     renderTasks();
 }
 
+function clearTaskForm() {
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskNote').value = '';
+    document.getElementById('taskDate').value = '';
+    document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('[data-priority="medium"]').classList.add('active');
+    currentPriority = 'medium';
+    
+    document.getElementById('saveTaskBtn').innerHTML = '➕ ADD TASK';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+function cancelEdit() {
+    editingTaskId = null;
+    clearTaskForm();
+    switchTaskTab('active');
+}
+
+function editTask(taskId) {
+    const task = activeTasks.find(t => t.id === taskId) || completedTasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    editingTaskId = taskId;
+    document.getElementById('taskTitle').value = task.title;
+    document.getElementById('taskNote').value = task.note;
+    document.getElementById('taskDate').value = task.date;
+    
+    document.querySelectorAll('.priority-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`[data-priority="${task.priority}"]`).classList.add('active');
+    currentPriority = task.priority;
+    
+    document.getElementById('saveTaskBtn').innerHTML = '💾 UPDATE TASK';
+    document.getElementById('cancelEditBtn').style.display = 'flex';
+    
+    switchTaskTab('add');
+}
+
+function deleteTask(taskId) {
+    if (!confirm('Are you sure you want to delete this task?')) return;
+    
+    activeTasks = activeTasks.filter(t => t.id !== taskId);
+    completedTasks = completedTasks.filter(t => t.id !== taskId);
+    
+    if (currentTask && currentTask.id === taskId) {
+        currentTask = null;
+        updateSessionTitle();
+    }
+    
+    renderTasks();
+}
+
+function markAsDone(taskId) {
+    const taskIndex = activeTasks.findIndex(t => t.id === taskId);
+    if (taskIndex > -1) {
+        const task = activeTasks.splice(taskIndex, 1)[0];
+        task.completed = true;
+        completedTasks.push(task);
+        renderTasks();
+    }
+}
+
+function markAsActive(taskId) {
+    const taskIndex = completedTasks.findIndex(t => t.id === taskId);
+    if (taskIndex > -1) {
+        const task = completedTasks.splice(taskIndex, 1)[0];
+        task.completed = false;
+        activeTasks.push(task);
+        renderTasks();
+    }
+}
+
 function renderTasks() {
+    renderActiveList();
+    renderDoneList();
+}
+
+function renderActiveList() {
+    const activeList = document.getElementById('activeList');
+    const activeEmpty = document.getElementById('activeEmpty');
+
+    activeList.innerHTML = '';
+
+    if (activeTasks.length === 0) {
+        activeEmpty.style.display = 'block';
+    } else {
+        activeEmpty.style.display = 'none';
+        activeTasks.forEach(task => {
+            const taskEl = createTaskElement(task, false);
+            activeList.appendChild(taskEl);
+        });
+    }
+}
+
+function renderDoneList() {
     const doneList = document.getElementById('doneList');
     const doneEmpty = document.getElementById('doneEmpty');
 
@@ -212,34 +310,55 @@ function renderTasks() {
     } else {
         doneEmpty.style.display = 'none';
         completedTasks.forEach(task => {
-            const taskEl = createTaskElement(task);
+            const taskEl = createTaskElement(task, true);
             doneList.appendChild(taskEl);
         });
     }
 }
 
-function createTaskElement(task) {
+function createTaskElement(task, isDone) {
     const div = document.createElement('div');
     div.className = 'task-item';
     div.dataset.id = task.id;
     
+    // Add selected class if this is the current task
+    if (currentTask && currentTask.id === task.id) {
+        div.classList.add('selected');
+    }
+    
+    const priorityColor = task.priority === 'high' ? '#d32f2f' : 
+                         task.priority === 'low' ? '#388e3c' : '#f57c00';
+    
     div.innerHTML = `
-        <div class="task-title">${task.title}</div>
-        <div class="task-meta">
-            Priority: ${task.priority.toUpperCase()} | Date: ${task.date || 'No date'}
+        <div class="task-header">
+            <div class="task-title-clickable" onclick="selectTaskForSession(${task.id})">
+                ${task.title}
+            </div>
+            <div class="task-actions">
+                ${!isDone ? `<button class="task-action-btn" onclick="event.stopPropagation(); markAsDone(${task.id})" title="Mark as done">✓</button>` : 
+                           `<button class="task-action-btn" onclick="event.stopPropagation(); markAsActive(${task.id})" title="Mark as active">↺</button>`}
+                <button class="task-action-btn" onclick="event.stopPropagation(); editTask(${task.id})" title="Edit">✎</button>
+                <button class="task-action-btn delete" onclick="event.stopPropagation(); deleteTask(${task.id})" title="Delete">✕</button>
+            </div>
         </div>
-        ${task.note ? `<div style="margin-top: 8px; font-size: 13px;">${task.note}</div>` : ''}
+        <div class="task-meta">
+            <span style="color: ${priorityColor}; font-weight: bold;">● ${task.priority.toUpperCase()}</span> | 
+            Date: ${task.date || 'No date'}
+        </div>
+        ${task.note ? `<div class="task-note">${task.note}</div>` : ''}
     `;
-
-    div.addEventListener('click', () => selectTaskForSession(task));
 
     return div;
 }
 
-function selectTaskForSession(task) {
-    currentTask = task;
-    updateSessionTitle();
-    closePopup('taskPopup');
+function selectTaskForSession(taskId) {
+    const task = activeTasks.find(t => t.id === taskId) || completedTasks.find(t => t.id === taskId);
+    if (task) {
+        currentTask = task;
+        updateSessionTitle();
+        renderTasks(); // Re-render to show selection
+        closePopup('taskPopup');
+    }
 }
 
 function openSpotify(playlist) {
