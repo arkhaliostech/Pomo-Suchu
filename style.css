@@ -142,7 +142,6 @@ body.dark .timer {
     transition: all 0.3s ease-in-out;
 }
 
-/* Expanded mode - controls hidden by default */
 .container.expanded .controls {
     position: fixed;
     bottom: 40px;
@@ -153,7 +152,6 @@ body.dark .timer {
     transition: all 0.4s ease-in-out;
 }
 
-/* Show controls when hovering in expanded mode */
 .container.expanded .controls.show {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
@@ -323,38 +321,111 @@ body.dark .task-tab.active {
     font-weight: bold;
     color: currentColor;
     font-family: 'Monocraft', monospace;
+    transition: all 0.2s;
 }
 
+.priority-btn:hover {
+    background: rgba(0,0,0,0.15);
+}
+
+/* Priority button active states with better visibility */
 .priority-btn.active {
-    background: currentColor;
+    background: #2c2c2c;
     color: #d4c9b8;
+    border-color: #2c2c2c;
 }
 
 body.dark .priority-btn.active {
+    background: #d4c9b8;
     color: #2c2c2c;
+    border-color: #d4c9b8;
 }
 
 .task-item {
-    padding: 20px;
+    padding: 15px;
     border: 2px solid currentColor;
     margin-bottom: 15px;
-    cursor: pointer;
     transition: all 0.3s;
 }
 
 .task-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* Highlight selected task */
+.task-item.selected {
+    background: rgba(0,0,0,0.15);
+    border-width: 3px;
+}
+
+body.dark .task-item.selected {
+    background: rgba(255,255,255,0.1);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.task-title-clickable {
+    font-weight: bold;
+    font-size: 16px;
+    flex: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.task-title-clickable:hover {
+    color: #f57c00;
+    text-decoration: underline;
+}
+
+body.dark .task-title-clickable:hover {
+    color: #ffa726;
+}
+
+.task-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.task-action-btn {
+    padding: 5px 10px;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: currentColor;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Monocraft', monospace;
+    transition: all 0.2s;
+}
+
+.task-action-btn:hover {
     background: rgba(0,0,0,0.1);
 }
 
-.task-title {
-    font-weight: bold;
-    margin-bottom: 8px;
-    font-size: 16px;
+.task-action-btn.delete:hover {
+    background: #d32f2f;
+    color: white;
+    border-color: #d32f2f;
 }
 
 .task-meta {
     font-size: 12px;
-    opacity: 0.7;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.task-note {
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-left: 3px solid currentColor;
 }
 
 .music-list {
@@ -505,7 +576,22 @@ body.dark .priority-btn.active {
     }
 
     .task-item {
-        padding: 15px;
+        padding: 12px;
+    }
+
+    .task-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .task-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .task-action-btn {
+        padding: 4px 8px;
+        font-size: 12px;
     }
 
     .music-item {
@@ -536,5 +622,643 @@ body.dark .priority-btn.active {
 
     .session-title {
         font-size: 16px;
+    }
+
+    .task-tab {
+        font-size: 12px;
+        padding: 8px;
+    }
+}@font-face {
+  font-family: 'Monocraft';
+  src:url('fonts/Monocraft.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Monocraft', monospace;
+    transition: background-color 0.3s, color 0.3s;
+    overflow: hidden;
+    height: 100vh;
+}
+
+body.light {
+    background-color: #d4c9b8;
+    color: #2c2c2c;
+}
+
+body.dark {
+    background-color: #1a1a1a;
+    color: #d4c9b8;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    transition: all 0.5s ease;
+}
+
+.container.expanded {
+    justify-content: flex-start;
+    padding-top: 15vh;
+}
+
+.avatar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 60px;
+    height: 60px;
+    border: 2px solid hsla(0, 0%, 0%, 0.8);
+    border-radius: 10rem;
+    overflow: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 80px;
+    height: 40px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border: 2px solid currentColor;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.theme-toggle-circle {
+    width: 30px;
+    height: 30px;
+    background:#d4c9b8 ;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    display: flex;
+    align-items:center;
+    justify-content:center;
+}
+
+body.dark .theme-toggle-circle {
+    transform: translateX(40px);
+}
+
+.mode-tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 80px;
+    transition: opacity 0.3s;
+}
+
+.mode-tab {
+    padding: 12px 30px;
+    background: rgba(0,0,0,0.1);
+    border: 2px solid currentColor;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mode-tab:hover {
+    background: rgba(0,0,0,0.2);
+}
+
+.timer {
+    font-size: 140px;
+    font-weight: bold;
+    letter-spacing: 15px;
+    margin-bottom: 50px;
+    font-family: 'Monocraft', monospace;
+    color: #2c2c2c;
+}
+
+body.dark .timer {
+    color: #d4c9b8;
+}
+
+.session-title {
+    font-size: 24px;
+    margin-top: 30px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.container.expanded .session-title {
+    opacity: 1;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    transition: all 0.3s ease-in-out;
+}
+
+.container.expanded .controls {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(150px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s ease-in-out;
+}
+
+.container.expanded .controls.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.btn {
+    padding: 15px 35px;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: currentColor;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    font-family: 'Monocraft', monospace;
+}
+
+.btn:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+.btn.stop {
+    background: #d32f2f;
+    color: white;
+    border-color: #d32f2f;
+    display: none;
+}
+
+.btn.stop.active {
+    display: flex;
+}
+
+.btn.reset {
+    display: none;
+}
+
+.btn.reset.active {
+    display: flex;
+}
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.popup.active {
+    display: flex;
+}
+
+.popup-content {
+    background: #d4c9b8;
+    color: #2c2c2c;
+    padding: 40px;
+    border: 3px solid #2c2c2c;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+body.dark .popup-content {
+    background: #2c2c2c;
+    color: #d4c9b8;
+    border-color: #d4c9b8;
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.close-btn {
+    cursor: pointer;
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.task-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.task-tab {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid currentColor;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.task-tab.active {
+    background: #2c2c2c;
+    color: #d4c9b8;
+    border-color: #2c2c2c;
+}
+
+body.dark .task-tab.active {
+    background: #d4c9b8;
+    color: #2c2c2c;
+    border-color: #d4c9b8;
+}
+
+.task-section {
+    display: none;
+}
+
+.task-section.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: currentColor;
+    font-family: 'Monocraft', monospace;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.priority-group {
+    display: flex;
+    gap: 10px;
+}
+
+.priority-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid currentColor;
+    background: transparent;
+    cursor: pointer;
+    font-weight: bold;
+    color: currentColor;
+    font-family: 'Monocraft', monospace;
+    transition: all 0.2s;
+}
+
+.priority-btn:hover {
+    background: rgba(0,0,0,0.15);
+}
+
+/* Priority button active states with better visibility */
+.priority-btn.active {
+    background: #2c2c2c;
+    color: #d4c9b8;
+    border-color: #2c2c2c;
+}
+
+body.dark .priority-btn.active {
+    background: #d4c9b8;
+    color: #2c2c2c;
+    border-color: #d4c9b8;
+}
+
+.task-item {
+    padding: 15px;
+    border: 2px solid currentColor;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.task-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* Highlight selected task */
+.task-item.selected {
+    background: rgba(0,0,0,0.15);
+    border-width: 3px;
+}
+
+body.dark .task-item.selected {
+    background: rgba(255,255,255,0.1);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.task-title-clickable {
+    font-weight: bold;
+    font-size: 16px;
+    flex: 1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.task-title-clickable:hover {
+    color: #f57c00;
+    text-decoration: underline;
+}
+
+body.dark .task-title-clickable:hover {
+    color: #ffa726;
+}
+
+.task-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.task-action-btn {
+    padding: 5px 10px;
+    border: 2px solid currentColor;
+    background: transparent;
+    color: currentColor;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Monocraft', monospace;
+    transition: all 0.2s;
+}
+
+.task-action-btn:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+.task-action-btn.delete:hover {
+    background: #d32f2f;
+    color: white;
+    border-color: #d32f2f;
+}
+
+.task-meta {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 5px;
+}
+
+.task-note {
+    margin-top: 8px;
+    font-size: 13px;
+    padding: 8px;
+    background: rgba(0,0,0,0.05);
+    border-left: 3px solid currentColor;
+}
+
+.music-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.music-item {
+    padding: 18px;
+    border: 2px solid currentColor;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.music-item:hover {
+    background: rgba(0,0,0,0.1);
+}
+
+.settings-group {
+    margin-bottom: 25px;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.duration-inputs {
+    display: flex;
+    gap: 15px;
+}
+
+.duration-inputs > div {
+    flex: 1;
+}
+
+.container.expanded .mode-tabs {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    opacity: 0.5;
+    font-style: italic;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .avatar {
+        width: 45px;
+        height: 45px;
+        top: 15px;
+        left: 15px;
+    }
+
+    .theme-toggle {
+        width: 65px;
+        height: 35px;
+        top: 15px;
+        right: 15px;
+    }
+
+    .theme-toggle-circle {
+        width: 25px;
+        height: 25px;
+    }
+
+    body.dark .theme-toggle-circle {
+        transform: translateX(30px);
+    }
+
+    .mode-tabs {
+        gap: 8px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+    }
+
+    .mode-tab {
+        padding: 10px 20px;
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+
+    .timer {
+        font-size: 80px;
+        letter-spacing: 8px;
+        margin-bottom: 30px;
+    }
+
+    .session-title {
+        font-size: 18px;
+        margin-top: 20px;
+    }
+
+    .controls {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        gap: 5px;
+    }
+
+    .container.expanded .controls.show {
+        bottom: 20px;
+    }
+
+    .popup-content {
+        padding: 25px;
+        max-height: 85vh;
+    }
+
+    .popup-header {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
+    .task-tabs {
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .task-tab {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .priority-btn {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .task-item {
+        padding: 12px;
+    }
+
+    .task-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .task-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .task-action-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .music-item {
+        padding: 15px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .timer {
+        font-size: 60px;
+        letter-spacing: 5px;
+    }
+
+    .mode-tab {
+        padding: 8px 15px;
+        font-size: 12px;
+    }
+
+    .btn {
+        padding: 10px 15px;
+        font-size: 12px;
+    }
+
+    .container.expanded {
+        padding-top: 10vh;
+    }
+
+    .session-title {
+        font-size: 16px;
+    }
+
+    .task-tab {
+        font-size: 12px;
+        padding: 8px;
     }
 }
