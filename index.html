@@ -66,8 +66,15 @@
             </div>
             
             <div class="task-tabs">
+                <div class="task-tab" onclick="switchTaskTab('active')">ACTIVE</div>
                 <div class="task-tab active" onclick="switchTaskTab('add')">ADD NEW</div>
                 <div class="task-tab" onclick="switchTaskTab('done')">DONE</div>
+            </div>
+
+            <!-- Active Tasks Section -->
+            <div class="task-section" id="activeSection">
+                <div id="activeList"></div>
+                <div class="empty-state" id="activeEmpty">No active tasks. Add a new task to get started!</div>
             </div>
 
             <!-- Add Task Section -->
@@ -92,8 +99,11 @@
                         <button class="priority-btn" data-priority="high" onclick="selectPriority('high')">HIGH</button>
                     </div>
                 </div>
-                <button class="btn" style="width: 100%; justify-content: center; margin-top: 20px;" onclick="addTask()">
+                <button class="btn" style="width: 100%; justify-content: center; margin-top: 20px;" onclick="saveTask()" id="saveTaskBtn">
                     ➕ ADD TASK
+                </button>
+                <button class="btn" style="width: 100%; justify-content: center; margin-top: 10px; display: none;" onclick="cancelEdit()" id="cancelEditBtn">
+                    ✕ CANCEL
                 </button>
             </div>
 
